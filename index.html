@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Encore FM — радио aliveenjoyer</title>
+<meta name="description" content="Общее радио канала aliveenjoyer: слушаем вместе, заказываем треки бесплатно — YouTube, SoundCloud, Spotify или просто название.">
+<meta property="og:title" content="Encore FM — радио aliveenjoyer">
+<meta property="og:description" content="Слушаем вместе. Кидай свой трек — он встанет в очередь, и его услышат все.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0a0908">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com https://w.soundcloud.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://w.soundcloud.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://aliveenjoyer.art; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://173-249-26-11.sslip.io:8444 https://aliveenjoyer.art; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://aliveenjoyer.art/social.css">
+<link rel="stylesheet" href="css/app.css?v=20261123064934">
+</head>
+<body>
+<div class="amb" aria-hidden="true"><div class="amb-img" id="amb"></div></div>
+
+<header class="top">
+  <a class="brand" href="./" aria-label="Encore FM">
+    <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="brand-name">Encore<b>FM</b></span>
+    <span class="brand-sub">107.7 · радио aliveenjoyer</span>
+  </a>
+  <div class="top-mid" id="crowd" aria-live="polite"></div>
+  <nav class="ae-soc is-short" aria-label="Канал aliveenjoyer">
+    <a class="ae-b ae-tg" href="https://t.me/aliveenjoyer" target="_blank" rel="noopener" aria-label="Telegram-канал"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2l-11 6.9-4.7-1.5c-1-.3-1-1 .2-1.5L20.6 3c.9-.3 1.6.2 1.3 1.3Z"/></svg><span class="ae-l">Telegram-канал</span><span class="ae-s">Telegram</span><span class="ae-m">ТГК</span></a>
+    <a class="ae-b ae-da" href="https://www.donationalerts.com/r/aliveenjoyer" target="_blank" rel="noopener" aria-label="Закинуть донат"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.3C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.5 1.1 4.4 2.4.9-1.3 2.3-2.4 4.4-2.4 3.7 0 5.7 3.9 4.2 7.2C19.5 16.4 12 21 12 21Z"/></svg><span class="ae-l">Закинуть донат</span><span class="ae-s">Донат</span><span class="ae-m">Донат</span></a>
+    <a class="ae-b ae-tw" href="https://twitch.tv/aliveenjoyer" target="_blank" rel="noopener" aria-label="Twitch: смотреть стрим"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M4.3 2 3 5.4v13.7h4.6V22h2.6l2.8-2.9h3.7L22 13.9V2H4.3Zm15.6 11-3.1 3.1h-4.6l-2.6 2.6v-2.6H5.6V4h14.3v9ZM16.4 7.1h-2v5.5h2V7.1Zm-5.5 0h-2v5.5h2V7.1Z"/></svg><span class="ae-l">Смотреть стрим</span><span class="ae-s">Twitch</span><span class="ae-m">Twitch</span></a>
+  </nav>
+  <div class="who" id="who"></div>
+</header>
+
+<main class="wrap">
+  <!-- Ресивер: экран клипа, дисплей, шкала настройки, стрелки уровня, ручка громкости -->
+  <section class="deck" id="deck" aria-label="Радио">
+    <div class="deck-strip">
+      <span class="etch">Encore · Stereo receiver · AE-1077</span>
+      <span class="onair" id="onair" title="Лампа горит, когда ведущий в эфире"><i></i><b>В эфире</b><span id="onair-who"></span></span>
+    </div>
+    <div class="deck-body">
+      <div class="screen" id="screen">
+        <div class="screen-media" id="media"></div>
+        <div class="screen-tune" id="screen-tune" aria-hidden="true">
+          <canvas class="screen-noise" id="noise" width="160" height="90"></canvas>
+          <div class="screen-ident"><b>Encore<i>FM</i></b><span id="tune-text">Поиск волны…</span></div>
+        </div>
+        <div class="screen-off" id="screen-off">
+          <div class="screen-art" id="screen-art"></div>
+          <button class="power-cta" id="power-cta" type="button">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5Z"/></svg>
+            <span>Слушать эфир</span>
+          </button>
+          <p class="screen-hint" id="screen-hint">Включи — и услышишь то же, что и все, с той же секунды</p>
+        </div>
+      </div>
+      <div class="face">
+        <div class="vfd" id="vfd">
+          <div class="vfd-row vfd-top"><span id="vfd-mode">● ЭФИР</span><span class="vfd-fm">107.7&nbsp;FM&nbsp;&nbsp;STEREO</span></div>
+          <div class="vfd-title"><div class="vfd-run" id="vfd-title">ENCORE FM</div></div>
+          <div class="vfd-row vfd-sub"><span id="vfd-artist">РАДИО ALIVEENJOYER</span><span id="vfd-by"></span></div>
+          <div class="vfd-row vfd-prog"><span class="vfd-bars" id="vfd-bars"></span><span class="vfd-time" id="vfd-time">--:-- / --:--</span></div>
+        </div>
+        <div class="dial" id="dial" aria-hidden="true">
+          <div class="dial-scale" id="dial-scale"></div>
+          <div class="dial-needle" id="needle"></div>
+        </div>
+        <div class="face-low">
+          <div class="vu" aria-hidden="true"><div class="vu-face"><svg viewBox="0 0 120 70" class="vu-scale" id="vu-scale-l"></svg><i class="vu-needle" id="vu-l"></i><span class="vu-ch">L</span></div></div>
+          <div class="vu" aria-hidden="true"><div class="vu-face"><svg viewBox="0 0 120 70" class="vu-scale" id="vu-scale-r"></svg><i class="vu-needle" id="vu-r"></i><span class="vu-ch">R</span></div></div>
+          <div class="keys">
+            <button class="key" id="k-like" type="button" title="Трек качает — он попадёт в золотой фонд эфира">
+              <i class="led"></i><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12.6 2.3c.4 3-1.2 4.6-2.7 6.1C8.4 9.9 7 11.4 7 14a5 5 0 0 0 10 0c0-1.6-.6-2.8-1.4-3.8.1 1.3-.4 2.3-1.4 2.8.4-3.6-.9-7.6-1.6-10.7ZM12 21a7 7 0 0 1-7-7c0-3.6 2-5.6 3.5-7.1C10.2 5.2 11 4.4 10.7 1l-.1-.9.9.2C15.3 1.1 19 7.1 19 14a7 7 0 0 1-7 7Z"/></svg>
+              <span class="key-l">Качает</span><b class="key-n" id="k-like-n"></b>
+            </button>
+            <button class="key" id="k-skip" type="button" title="Мимо: наберётся нужное число голосов — трек пропустится">
+              <i class="led red"></i><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M5 5.8v12.4a1 1 0 0 0 1.6.8l8-6.2a1 1 0 0 0 0-1.6l-8-6.2A1 1 0 0 0 5 5.8ZM17 5h2v14h-2z"/></svg>
+              <span class="key-l">Мимо</span><b class="key-n" id="k-skip-n"></b>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="fader-col">
+        <span class="fader-l">Громкость</span>
+        <div class="fader" id="fader" role="slider" tabindex="0" aria-label="Громкость" aria-valuemin="0" aria-valuemax="100">
+          <div class="fader-ticks" aria-hidden="true"></div>
+          <div class="fader-slot" aria-hidden="true"><i class="fader-fill" id="fader-fill"></i></div>
+          <div class="fader-cap" id="fader-cap" aria-hidden="true"><i></i></div>
+        </div>
+        <button class="vol-n" id="mute" type="button" title="Выключить звук"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Z"/></svg><span id="vol-n">70</span></button>
+        <button class="power" id="power" type="button" aria-pressed="false"><i class="led"></i><span>Вкл</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Пульт ведущего: только у ведущих -->
+  <section class="host hide" id="host" aria-label="Пульт ведущего"></section>
+
+  <!-- Заказ -->
+  <section class="order" id="order">
+    <p class="note hide" id="note"></p>
+    <form class="slot" id="slot" autocomplete="off">
+      <label class="slot-in">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.2 4.2-1.4 1.4-4.2-4.2A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+        <input id="q" name="q" type="text" maxlength="300" enterkeyhint="send" placeholder="Название трека или ссылка YouTube, SoundCloud, Spotify" aria-label="Что поставить в эфир">
+      </label>
+      <button class="btn-order" id="order-btn" type="submit"><span>Заказать трек</span></button>
+    </form>
+    <p class="rules" id="rules"></p>
+    <div class="result hide" id="result" aria-live="polite"></div>
+  </section>
+
+  <section class="cols">
+    <div class="col-main">
+      <div class="suggest hide" id="suggest"></div>
+      <h2 class="h">Дальше в эфире <span class="h-n" id="q-n"></span></h2>
+      <ol class="queue" id="queue"></ol>
+    </div>
+    <aside class="col-side">
+      <h2 class="h">Только что играло</h2>
+      <ol class="log" id="log"></ol>
+      <h2 class="h h-gap">Хиты недели</h2>
+      <ol class="hits" id="hits"></ol>
+      <h2 class="h h-gap">Лучшие диджеи</h2>
+      <ol class="djs" id="djs"></ol>
+    </aside>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>Encore FM — часть <a href="https://encore.aliveenjoyer.art" target="_blank" rel="noopener">Encore</a>. Звук играет с YouTube и SoundCloud у каждого слушателя.</span>
+  <a href="https://aliveenjoyer.art" target="_blank" rel="noopener">aliveenjoyer.art</a>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="js/main.js?v=20261123064934"></script>
+</body>
+</html>
