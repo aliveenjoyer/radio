@@ -1,8 +1,8 @@
 // Encore FM: страница радио. Состояние эфира приходит потоком, плеер играет с той же секунды, что у всех.
-import { call, clock, stream, session } from './api.js?v=20261123064934';
-import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123064934';
-import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123064934';
-import { Player } from './player.js?v=20261123064934';
+import { call, clock, stream, session } from './api.js?v=20261123065554';
+import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123065554';
+import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123065554';
+import { Player } from './player.js?v=20261123065554';
 
 let S = null;                 // последнее состояние эфира
 let lastNowId = null;
@@ -286,8 +286,15 @@ function renderOrder() {
   $('#rules').innerHTML = parts.join(' · ');
 }
 
-// Пульт: три уровня. Главное — выйти в эфир (крупно, красным). Ниже по весу — транспорт (пауза, дальше).
-// Ещё тише — как принимать заказы (переключатели). Редкое — словом справа.
+// Пульт (вариант A, выбран владельцем 23.11): неоновая вывеска «В эфире» — главное; пауза и следующий трек —
+// тихие стеклянные кнопки; как принимать заказы — одна плашка с меню; слово ведущего и настройки — значками.
+const ORDER_MODES = [
+  { k: 'free', t: 'Сразу в очередь', d: 'Заказы идут в эфир без тебя' },
+  { k: 'premod', t: 'Через меня', d: 'Сначала треки смотришь ты' },
+  { k: 'close', t: 'Закрыть заказ', d: 'Новые треки не принимаются' },
+];
+function orderMode(s) { return !s.open ? 'close' : s.mode === 'host' ? 'premod' : 'free'; }
+
 function renderHost() {
   const box = $('#host');
   const me = user.me;
@@ -297,26 +304,24 @@ function renderHost() {
   const oa = S.onair;
   const mineAir = oa && oa.login === me.login;
   const paused = S.paused != null;
-  const sub = mineAir ? 'Слушатели видят, что ведёшь ты' : oa ? 'Сейчас ведёт ' + esc(oa.name) : 'Лампа загорится у всех слушателей';
+  const mode = orderMode(s);
+  const cnt = S.suggest.length;
+  const open = !$('#modes-menu') || $('#modes-menu').classList.contains('hide') ? ' hide' : '';
+  const label = mode === 'close' ? 'Заказы закрыты' : `Заказы: <em>${mode === 'premod' ? 'через меня' : 'сразу в очередь'}</em>`;
+  const cap = mineAir ? '<span id="air-clock"></span> · нажми, чтобы уйти' : oa ? 'Сейчас ведёт ' + esc(oa.name) : 'Нажми — лампа загорится у всех';
   box.innerHTML = `
-    <button class="air${mineAir ? ' live' : ''}" data-h="onair" type="button">
-      <i class="air-lamp"></i>
-      <span class="air-t"><b>${mineAir ? 'В эфире' : 'Выйти в эфир'}</b><small>${sub}</small></span>
-      ${mineAir ? '<span class="air-clock" id="air-clock"></span>' : ''}
-    </button>
-    <div class="transport">
-      <button class="tbtn" data-h="${paused ? 'resume' : 'pause'}" type="button" ${S.now ? '' : 'disabled'} aria-label="${paused ? 'Продолжить' : 'Пауза для всех'}">${paused ? ICON.play : ICON.pause}</button>
-      <button class="tbtn" data-h="skip" type="button" ${S.now ? '' : 'disabled'} aria-label="Следующий трек">${ICON.next}</button>
-      <span class="transport-l">${paused ? 'Эфир на паузе' : S.now ? 'Пауза · дальше' : 'Эфир молчит'}</span>
+    <button class="sign${mineAir ? ' live' : ''}" data-h="onair" type="button" aria-pressed="${!!mineAir}"><b>В ЭФИРЕ</b><small>${cap}</small></button>
+    <button class="pill" data-h="${paused ? 'resume' : 'pause'}" type="button" ${S.now ? '' : 'disabled'}>${paused ? ICON.play : ICON.pause}<span>${paused ? 'Продолжить' : 'Пауза'}</span></button>
+    <button class="pill" data-h="skip" type="button" ${S.now ? '' : 'disabled'}>${ICON.next}<span>Следующий трек</span></button>
+    <span class="grow"></span>
+    <div class="chip-wrap">
+      <button class="chip m-${mode}" data-h="modes" type="button" aria-haspopup="menu"><i></i><span>${label}</span>${cnt ? `<b class="cnt">${cnt}</b>` : ''}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m7 10 5 5 5-5z"/></svg></button>
+      <div class="menu${open}" id="modes-menu" role="menu">${ORDER_MODES.map((m) => `
+        <button class="menu-i${m.k === mode ? ' on' : ''} m-${m.k}" data-h="${m.k}" type="button" role="menuitemradio" aria-checked="${m.k === mode}"><i></i><span><b>${m.t}${m.k === 'premod' && cnt ? ` <b class="cnt">${cnt}</b>` : ''}</b><small>${m.d}</small></span></button>`).join('')}
+      </div>
     </div>
-    <div class="rules-box">
-      <button class="tog" data-h="${s.open ? 'close' : 'open'}" type="button" aria-pressed="${s.open}"><i class="switch${s.open ? ' on' : ''}"></i><span><b>Приём заказов</b><small>${s.open ? 'открыт' : 'закрыт'}</small></span></button>
-      <button class="tog" data-h="${s.mode === 'host' ? 'free' : 'premod'}" type="button" aria-pressed="${s.mode === 'host'}"><i class="switch${s.mode === 'host' ? ' on' : ''}"></i><span><b>Через меня${S.suggest.length ? ` <em>${S.suggest.length}</em>` : ''}</b><small>${s.mode === 'host' ? 'треки ждут тебя' : 'сразу в очередь'}</small></span></button>
-    </div>
-    <div class="tools">
-      <button class="tl" data-h="note" type="button">${ICON.pen}<span>Слово ведущего</span></button>
-      <button class="tl" data-h="settings" type="button">${ICON.gear}<span>Настройки</span></button>
-    </div>`;
+    <button class="ico" data-h="note" type="button" title="Слово ведущего" aria-label="Слово ведущего">${ICON.pen}</button>
+    <button class="ico" data-h="settings" type="button" title="Настройки" aria-label="Настройки">${ICON.gear}</button>`;
 }
 
 function renderAll() {
@@ -575,13 +580,16 @@ function wire() {
     const b = e.target.closest('[data-do]');
     if (b) { await act({ do: b.dataset.do, id: b.dataset.id }); return; }
     const h = e.target.closest('[data-h]');
+    const menu = document.getElementById('modes-menu');
+    if (menu && !e.target.closest('.chip-wrap')) menu.classList.add('hide');
     if (!h) return;
     const k = h.dataset.h;
     if (k === 'onair') act({ do: 'onair', on: !(S.onair && S.onair.login === user.me.login) });
     else if (k === 'pause' || k === 'resume') act({ do: k });
     else if (k === 'skip') act({ do: 'skip', force: true });
-    else if (k === 'open' || k === 'close') act({ do: 'settings', set: { open: k === 'open' } });
-    else if (k === 'free' || k === 'premod') act({ do: 'settings', set: { mode: k === 'free' ? 'free' : 'host' } });
+    else if (k === 'modes') { $('#modes-menu').classList.toggle('hide'); return; }
+    else if (k === 'close') { $('#modes-menu').classList.add('hide'); act({ do: 'settings', set: { open: false } }); }
+    else if (k === 'free' || k === 'premod') { $('#modes-menu').classList.add('hide'); act({ do: 'settings', set: { open: true, mode: k === 'free' ? 'free' : 'host' } }); }
     else if (k === 'note') noteModal();
     else if (k === 'settings') settingsModal();
   });
