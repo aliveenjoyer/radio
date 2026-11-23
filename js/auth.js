@@ -1,6 +1,6 @@
 // Вход через Twitch: в одно нажатие (страница Twitch → twitch.html), а если так нельзя — по коду, как в «Лобби».
-import { call, session, BASE } from './api.js?v=20261123075031';
-import { modal, $, ICON, toast } from './ui.js?v=20261123075031';
+import { call, session, BASE } from './api.js?v=20261123075611';
+import { modal, $, ICON, toast } from './ui.js?v=20261123075611';
 
 export const user = { me: null };
 const subs = new Set();

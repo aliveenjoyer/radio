@@ -1,9 +1,9 @@
 // Encore FM: страница радио. Состояние эфира приходит потоком, плеер играет с той же секунды, что у всех.
-import { call, clock, stream, session } from './api.js?v=20261123075031';
-import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123075031';
-import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123075031';
-import { Player } from './player.js?v=20261123075031';
-import { Sound } from './sound.js?v=20261123075031';
+import { call, clock, stream, session } from './api.js?v=20261123075611';
+import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123075611';
+import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123075611';
+import { Player } from './player.js?v=20261123075611';
+import { Sound } from './sound.js?v=20261123075611';
 
 let S = null;                 // последнее состояние эфира
 let lastNowId = null;

@@ -1,9 +1,9 @@
 // Мини-плеер Encore FM для встраивания (mini.html): экран, дисплей, громкость, ссылка на заказ.
 // ?autoplay=1 — включиться сразу (окно открыли по нажатию в «Лобби»). Не дал браузер — плеер просит касание.
-import { call, clock, stream } from './api.js?v=20261123075031';
-import { $, mmss } from './ui.js?v=20261123075031';
-import { Player } from './player.js?v=20261123075031';
-import { Sound } from './sound.js?v=20261123075031';
+import { call, clock, stream } from './api.js?v=20261123075611';
+import { $, mmss } from './ui.js?v=20261123075611';
+import { Player } from './player.js?v=20261123075611';
+import { Sound } from './sound.js?v=20261123075611';
 
 let S = null;
 let powered = false;
@@ -25,14 +25,14 @@ const player = new Player($('#media'), {
   onError: (it, code) => call('/report', { kind: 'err', vid: it.vid, code, sid }).catch(() => {}),
   onDuration: (it, d) => call('/report', { kind: 'dur', vid: it.vid, dur: d }).catch(() => {}),
   onPlaying: (p) => { $('#screen').classList.toggle('live', p); tell(); },
-  onBlocked: (b) => { $('#screen').classList.toggle('tap', b); $('#tap-hint').classList.toggle('hide', !b); mode(); },
+  onBlocked: (b) => { $('#screen').classList.toggle('tap', b); $('#tap-hint').classList.toggle('hide', !b); mode(); tell(); },
   onFail: () => { $('#tune-text').textContent = 'YouTube не загрузился'; },
 });
 
 // окну «Лобби» — что играет (для подписи на свёрнутой кнопке)
 function tell() {
   try {
-    window.parent.postMessage({ radio: 1, playing: player.playing, on: powered, title: S && S.now ? S.now.title : '', artist: S && S.now ? S.now.artist : '' }, '*');
+    window.parent.postMessage({ radio: 1, playing: player.playing, blocked: player.blocked, on: powered, title: S && S.now ? S.now.title : '', artist: S && S.now ? S.now.artist : '' }, '*');
   } catch (e) { /* не во фрейме */ }
 }
 
