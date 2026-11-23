@@ -1,8 +1,8 @@
 // Encore FM: страница радио. Состояние эфира приходит потоком, плеер играет с той же секунды, что у всех.
-import { call, clock, stream, session } from './api.js?v=20261123065554';
-import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123065554';
-import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123065554';
-import { Player } from './player.js?v=20261123065554';
+import { call, clock, stream, session } from './api.js?v=20261123072319';
+import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123072319';
+import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123072319';
+import { Player } from './player.js?v=20261123072319';
 
 let S = null;                 // последнее состояние эфира
 let lastNowId = null;
@@ -97,6 +97,7 @@ function renderMode() {
   let m = '● ЭФИР';
   if (!S || !S.now) m = '○ ТИШИНА';
   else if (S.paused != null) m = 'Ⅱ ПАУЗА';
+  else if (S.now.pl) m = '● ФОН';
   else if (S.now.auto) m = '● АВТОЭФИР';
   $('#vfd-mode').textContent = m;
 }
@@ -111,7 +112,7 @@ function renderNow() {
   if (n) {
     setTitle(n.title || 'Без названия');
     $('#vfd-artist').textContent = n.artist || (n.src === 'sc' ? 'SoundCloud' : 'YouTube');
-    $('#vfd-by').textContent = n.auto ? (n.by ? 'ИЗ ФОНДА · ' + n.by.name : 'ИЗ ФОНДА') : n.by ? 'ЗАКАЗАЛ ' + n.by.name : '';
+    $('#vfd-by').textContent = n.pl ? 'ПЛЕЙЛИСТ · ' + n.pl : n.auto ? (n.by ? 'ИЗ ФОНДА · ' + n.by.name : 'ИЗ ФОНДА') : n.by ? 'ЗАКАЗАЛ ' + n.by.name : '';
     const art = n.art ? `url("${n.art.replace(/"/g, '')}")` : 'none';
     $('#amb').style.backgroundImage = art;
     $('#amb').classList.toggle('on', !!n.art);
@@ -193,7 +194,7 @@ function renderQueue() {
   const host = user.me && user.me.host;
   $('#q-n').textContent = q.length ? q.length : '';
   if (!q.length) {
-    $('#queue').innerHTML = `<li class="empty">${S.now ? '<b>Очередь пуста.</b> Закажи — и твой трек пойдёт следующим.' : '<b>Эфир ждёт первый трек.</b> Закажи — заиграет сразу.'}${S.settings.autodj && S.now && S.now.auto ? ' Пока играет золотой фонд эфира.' : ''}</li>`;
+    $('#queue').innerHTML = `<li class="empty">${S.now ? '<b>Очередь пуста.</b> Закажи — и твой трек пойдёт следующим.' : '<b>Эфир ждёт первый трек.</b> Закажи — заиграет сразу.'}${S.now && S.now.pl ? ` Пока играет плейлист «${esc(S.now.pl)}».` : S.settings.autodj && S.now && S.now.auto ? ' Пока играет золотой фонд эфира.' : ''}</li>`;
     return;
   }
   const now = clock.now();
@@ -237,7 +238,7 @@ function renderLog() {
   const now = clock.now();
   $('#log').innerHTML = h.length ? h.slice(0, 8).map((x) => `
     <li class="li${x.skipped ? ' skipped' : ''}"><img src="${esc(x.art)}" alt="" loading="lazy">
-      <div class="t"><b>${esc(x.title)}</b><span>${esc(x.artist)}${x.by ? ' · ' + esc(x.by.name) : ''}</span></div>
+      <div class="t"><b>${esc(x.title)}</b><span>${esc(x.artist)}${x.pl ? ' · плейлист' : x.by ? ' · ' + esc(x.by.name) : ''}</span></div>
       <span class="v${x.nlikes ? ' fire' : ''}">${x.nlikes ? ICON.fire + ' ' + x.nlikes : ago(x.played, now)}</span></li>`).join('')
     : '<li class="side-empty">Пока ничего — эфир только начался.</li>';
 }
@@ -412,12 +413,22 @@ async function settingsModal() {
   const s = S.settings;
   let h = { bans: [], cohosts: [] };
   try { h = await call('/host'); } catch (e) { /* покажем без списков */ }
+  const pls = h.playlists || [];
   const m = modal(`<h3>Настройки эфира</h3>
+    <div class="sep-t" style="margin-top:10px">Фоновая музыка — когда нет заказов</div>
+    <p class="bg-hint">Кинь ссылку на свой плейлист YouTube или YouTube Music — треки будут играть вперемешку, пока никто не заказывает. Заказы встают в очередь и играют после текущего трека. Плейлист должен быть открытым или «по ссылке»; «Понравившиеся» не подойдут.</p>
+    <div class="row"><input type="text" id="pl-url" placeholder="https://music.youtube.com/playlist?list=…" maxlength="400"><button class="btn-main" id="pl-add">Добавить</button></div>
+    <div class="pl-list">${pls.map((p) => `<div class="pl-i${p.on === false ? ' off' : ''}">
+      <button class="switch${p.on === false ? '' : ' on'}" data-pl-toggle="${esc(p.id)}" data-on="${p.on === false ? 1 : 0}" type="button" aria-label="Играть этот плейлист"></button>
+      <span><b>${esc(p.title)}</b><small>${p.count} ${plural(p.count, 'трек', 'трека', 'треков')}</small></span>
+      <button class="op" data-pl-refresh="${esc(p.id)}" type="button" title="Перечитать плейлист с YouTube"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.6 6.4A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h7V4l-2.4 2.4Z"/></svg></button>
+      <button class="op no" data-pl-remove="${esc(p.id)}" type="button" title="Убрать плейлист">${ICON.x}</button></div>`).join('') || '<small style="color:var(--faint)">Пока нет — без плейлистов в тишине играет золотой фонд: треки, которые заказывали и лайкали.</small>'}</div>
+    <div class="sep-t">Заказы</div>
     <div class="row"><label>Треков от одного человека в очереди</label><input type="number" id="s-per" min="1" max="20" value="${s.per_user}"></div>
     <div class="row"><label>Самый длинный трек, мин</label><input type="number" id="s-len" min="1" max="60" value="${Math.round(s.max_len / 60)}"></div>
     <div class="row"><label>Тот же трек снова через, мин<small>0 — можно сразу</small></label><input type="number" id="s-cd" min="0" max="1440" value="${s.cooldown}"></div>
     <div class="row"><label>«Мимо» пропускает трек от, % слушателей</label><input type="number" id="s-sk" min="10" max="100" value="${s.skip_share}"></div>
-    <div class="row"><label>Автоэфир<small>Очередь пуста — играют треки, которые качали</small></label><button class="switch${s.autodj ? ' on' : ''}" id="s-auto" type="button" aria-label="Автоэфир"></button></div>
+    <div class="row"><label>Музыка, когда нет заказов<small>Выключишь — в тишине будет тишина</small></label><button class="switch${s.autodj ? ' on' : ''}" id="s-auto" type="button" aria-label="Автоэфир"></button></div>
     <div class="sep-t">Закрыть заказ человеку</div>
     <div class="row"><input type="text" id="b-login" placeholder="логин Twitch" maxlength="25"><button class="btn-ghost" id="b-day">На сутки</button><button class="btn-ghost" id="b-ever">Навсегда</button></div>
     <div class="tag-list" id="b-list">${h.bans.map((b) => `<span>${esc(b.login)}${b.until ? ' · до ' + clockAt(b.until * 1000) : ''}<button data-unban="${esc(b.login)}" title="Вернуть">×</button></span>`).join('') || '<small style="color:var(--faint)">Никого</small>'}</div>
@@ -448,6 +459,25 @@ async function settingsModal() {
     if (u && await act({ do: 'unban', login: u.dataset.unban })) { m.close(); settingsModal(); }
     const c = e.target.closest('[data-uncohost]');
     if (c && await act({ do: 'cohost', login: c.dataset.uncohost, on: false })) { m.close(); settingsModal(); }
+  });
+  const plAdd = async (url) => {
+    if (!url) { $('#pl-url', el).focus(); return; }
+    const b = $('#pl-add', el); b.disabled = true; b.textContent = 'Читаю плейлист…';
+    try {
+      const r = await call('/act', { do: 'pl_add', url });
+      toast(`Плейлист «${r.playlist.title}» — ${r.playlist.count} ${plural(r.playlist.count, 'трек', 'трека', 'треков')}`);
+      m.close(); settingsModal();
+    } catch (e) { toast(e.message, 5000); b.disabled = false; b.textContent = 'Добавить'; }
+  };
+  $('#pl-add', el).addEventListener('click', () => plAdd($('#pl-url', el).value.trim()));
+  $('#pl-url', el).addEventListener('keydown', (e) => { if (e.key === 'Enter') plAdd($('#pl-url', el).value.trim()); });
+  el.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-pl-toggle]');
+    if (t && await act({ do: 'pl_toggle', id: t.dataset.plToggle, on: t.dataset.on === '1' })) { m.close(); settingsModal(); }
+    const r = e.target.closest('[data-pl-remove]');
+    if (r && await act({ do: 'pl_remove', id: r.dataset.plRemove })) { m.close(); settingsModal(); }
+    const f = e.target.closest('[data-pl-refresh]');
+    if (f) plAdd('https://music.youtube.com/playlist?list=' + f.dataset.plRefresh);
   });
   const add = $('#c-add', el);
   if (add) add.addEventListener('click', async () => { if (await act({ do: 'cohost', login: $('#c-login', el).value.trim(), on: true })) { m.close(); settingsModal(); } });

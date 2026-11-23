@@ -1,6 +1,6 @@
 // Возврат со страницы Twitch после «Разрешить» (вход в одно нажатие, auth.js: loginRedirect).
 // Токен лежит в адресе после решётки: страница сразу убирает его из адреса, сверяет метку входа и меняет на вход радио.
-import { call, session } from './api.js?v=20261123065554';
+import { call, session } from './api.js?v=20261123072319';
 
 const box = document.getElementById('box');
 const frag = new URLSearchParams(location.hash.replace(/^#/, ''));

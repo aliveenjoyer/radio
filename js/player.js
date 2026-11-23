@@ -1,7 +1,7 @@
 // Плеер эфира: YouTube или SoundCloud у этого слушателя, с той секунды, что идёт у всех.
 // Сервер называет трек и момент его нулевой секунды (started, по часам сервера). Раз в 2 с сверяемся: разошлись больше
 // чем на 1,5 с — перематываем. Реклама YouTube и подгрузка сбивают время, сверка его возвращает.
-import { clock } from './api.js?v=20261123065554';
+import { clock } from './api.js?v=20261123072319';
 
 const DRIFT = 1.5;
 let ytReady = null;
@@ -116,7 +116,7 @@ export class Player {
     this.ytOkP = new Promise((ok) => {
       this.ytp = new YT.Player(inner, {
         host: 'https://www.youtube-nocookie.com',
-        playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1, iv_load_policy: 3, modestbranding: 1, origin: location.origin },
+        playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1, iv_load_policy: 3, modestbranding: 1, cc_load_policy: 0, origin: location.origin },
         events: {
           onReady: () => { this.ytOk = true; this.ytp.setVolume(this.vol); ok(); },
           onStateChange: (e) => this.ytState(e.data),
@@ -154,6 +154,7 @@ export class Player {
     if (!YT || !this.item || this.item.src !== 'yt') return;
     if (s === YT.PlayerState.PLAYING) {
       this.setPlaying(true);
+      try { this.ytp.unloadModule('captions'); this.ytp.unloadModule('cc'); } catch (e) { /* у ролика нет субтитров */ }
       if (!this.item.dur) { const d = this.ytp.getDuration(); if (d > 0) this.hooks.onDuration(this.item, d); }
       if (this.paused != null) this.ytp.pauseVideo();
     } else if (s === YT.PlayerState.PAUSED || s === YT.PlayerState.ENDED || s === YT.PlayerState.CUED) {
