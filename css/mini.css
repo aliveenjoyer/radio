@@ -1,0 +1,37 @@
+/* Мини-плеер Encore FM (mini.html) — встраивается окном 380 px в «Лобби». Те же дисплей и экран, что у ресивера. */
+body.mini { margin: 0; min-height: 0; padding: 10px; display: grid; gap: 10px; background: linear-gradient(180deg, #191817, #0f0e0e); overflow: hidden; font-size: 14px; }
+.mini .amb { display: none; }
+.m-screen.screen { aspect-ratio: 16 / 9; border-radius: 10px; box-shadow: 0 0 0 4px #0b0b0b, inset 0 0 30px rgba(0, 0, 0, .9); }
+.mini .screen-off { gap: 8px; }
+.mini .power-cta { height: 46px; padding: 0 22px 0 18px; font-size: 15.5px; }
+.mini .screen-ident b { font-size: 24px; }
+.mini .screen-ident span { font-size: 10.5px; }
+.m-tap { margin: 0; padding: 8px 10px; border-radius: 10px; background: rgba(255, 179, 71, .12); color: #ffe1b5; font-size: 12.5px; }
+.m-tap b { color: #fff; }
+.m-vfd {
+  position: relative; border-radius: 9px; padding: 9px 12px 9px; overflow: hidden; font-family: var(--mono); color: var(--vfd);
+  background: radial-gradient(120% 140% at 50% 0%, #0b1c19 0%, #060d0c 60%, #040706 100%);
+  box-shadow: inset 0 8px 18px rgba(0, 0, 0, .7); filter: drop-shadow(0 0 4px rgba(120, 255, 228, .4));
+}
+.m-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; white-space: nowrap; font-size: 10.5px; letter-spacing: .14em; }
+.m-row span { overflow: hidden; text-overflow: ellipsis; }
+.m-row #vfd-mode { color: #ffd08a; flex: none; }
+.m-row #m-crowd { opacity: .7; }
+.m-title { position: relative; height: 26px; margin: 5px 0 2px; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.m-run { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 21px; line-height: 26px; font-weight: 600; text-transform: uppercase;
+  -webkit-mask-image: radial-gradient(circle, #000 62%, transparent 72%); -webkit-mask-size: 2.2px 2.2px; mask-image: radial-gradient(circle, #000 62%, transparent 72%); mask-size: 2.2px 2.2px; }
+.m-run.scroll { animation: run var(--run-t, 12s) linear infinite; }
+.m-sub { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; }
+.m-sub #vfd-by { opacity: .65; max-width: 50%; }
+.m-prog { margin-top: 7px; align-items: center; }
+.m-prog .vfd-bars { height: 6px; }
+.m-prog .vfd-time { font-size: 11px; }
+.m-vfd.tuning .m-run, .m-vfd.tuning .m-sub { animation: flick .09s steps(2) infinite; }
+.m-bar { display: flex; align-items: center; gap: 10px; }
+.m-btn { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--dim);
+  background: linear-gradient(180deg, #2a2826, #1a1917); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 1px 0 #060606; }
+.m-btn[aria-pressed="true"] { color: #6dff9b; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 14px -4px rgba(109, 255, 155, .7); }
+.m-vol { flex: 1; display: flex; align-items: center; gap: 8px; color: var(--faint); min-width: 0; }
+.m-vol input { flex: 1; min-width: 0; accent-color: var(--amber-hot); height: 22px; }
+.m-order { flex: none; height: 38px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 11px; text-decoration: none; font-weight: 600; font-size: 13.5px;
+  color: #1b0e00; background: linear-gradient(180deg, #ffc56b, var(--amber-hot)); }

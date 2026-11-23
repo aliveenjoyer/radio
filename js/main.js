@@ -1,8 +1,9 @@
 // Encore FM: страница радио. Состояние эфира приходит потоком, плеер играет с той же секунды, что у всех.
-import { call, clock, stream, session } from './api.js?v=20261123073609';
-import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123073609';
-import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123073609';
-import { Player } from './player.js?v=20261123073609';
+import { call, clock, stream, session } from './api.js?v=20261123075031';
+import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123075031';
+import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123075031';
+import { Player } from './player.js?v=20261123075031';
+import { Sound } from './sound.js?v=20261123075031';
 
 let S = null;                 // последнее состояние эфира
 let lastNowId = null;
@@ -546,10 +547,9 @@ function fader() {
   });
 }
 
-// Шум эфира: на экране, пока трек не заиграл, и коротким шорохом в колонках, когда радио «перестраивается» на
-// новый трек. Звук делает сам браузер (Web Audio), он тише музыки и идёт за ползунком громкости.
+// Шум эфира на экране, пока трек не заиграл, и перебивка в колонках, когда радио переходит на новый трек
+// (шесть разных, js/sound.js). Звук делает сам браузер (Web Audio), он тише музыки и идёт за ползунком громкости.
 const noise = (() => {
-  let ctx = null; let buf = null; let level = 0.7;
   const cv = $('#noise'); const g2 = cv.getContext('2d'); const img = g2.createImageData(cv.width, cv.height);
   let last = 0;
   const draw = (ts) => {
@@ -570,29 +570,12 @@ const noise = (() => {
     g2.putImageData(img, 0, 0);
   };
   requestAnimationFrame(draw);
+  const sound = new Sound();                       // перебивки между треками — js/sound.js
   return {
-    wake() {                                       // только по нажатию: иначе браузер не даст звук
-      if (ctx) { ctx.resume(); return; }
-      try {
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        buf = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate);
-        const ch = buf.getChannelData(0);
-        for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
-      } catch (e) { ctx = null; }
-    },
-    gain(v) { level = v / 100; },
-    sweep() {
-      if (!ctx || !buf || level <= 0) return;
-      const t = ctx.currentTime;
-      const src = ctx.createBufferSource(); src.buffer = buf;
-      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
-      bp.frequency.setValueAtTime(500, t); bp.frequency.exponentialRampToValueAtTime(3200, t + 0.45); bp.frequency.exponentialRampToValueAtTime(900, t + 1.0);
-      const g = ctx.createGain();
-      const peak = 0.07 * level * level;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.08); g.gain.setValueAtTime(peak, t + 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
-      src.connect(bp).connect(g).connect(ctx.destination);
-      src.start(t); src.stop(t + 1.15);
-    },
+    wake: () => sound.wake(),
+    gain: (v) => sound.gain(v),
+    sweep: () => sound.ident(),
+    ident: (name) => sound.ident(name),
   };
 })();
 
@@ -663,5 +646,5 @@ async function start() {
   requestAnimationFrame(vuStep);
 }
 
-window.__radio = { player, get state() { return S; }, setPower };   // для проверок
+window.__radio = { player, get state() { return S; }, setPower, noise };   // для проверок
 start();
