@@ -1,7 +1,7 @@
 // Плеер эфира: YouTube или SoundCloud у этого слушателя, с той секунды, что идёт у всех.
 // Сервер называет трек и момент его нулевой секунды (started, по часам сервера). Раз в 2 с сверяемся: разошлись больше
 // чем на 1,5 с — перематываем. Реклама YouTube и подгрузка сбивают время, сверка его возвращает.
-import { clock } from './api.js?v=20261123072319';
+import { clock } from './api.js?v=20261123073609';
 
 const DRIFT = 1.5;
 let ytReady = null;
@@ -48,7 +48,10 @@ export class Player {
     this.seekedAt = 0;
     this.lead = { yt: 0, sc: 1.2 };
     this.playing = false;
+    this.blocked = false;          // браузер телефона не дал запустить звук сам: нужно касание по самому плееру
+    this.idleSince = 0;            // с какого момента должно играть, а не играет
     this.timer = setInterval(() => this.check(), 2000);
+    this.watch = setInterval(() => this.watchStart(), 700);
   }
 
   pos() {
@@ -78,7 +81,34 @@ export class Player {
     this.apply(!same);
   }
 
-  setPlaying(p) { if (p !== this.playing) { this.playing = p; this.hooks.onPlaying && this.hooks.onPlaying(p); } }
+  setPlaying(p) {
+    if (p) { this.idleSince = 0; this.setBlocked(false); }
+    if (p !== this.playing) { this.playing = p; this.hooks.onPlaying && this.hooks.onPlaying(p); }
+  }
+
+  setBlocked(b) { if (b !== this.blocked) { this.blocked = b; this.hooks.onBlocked && this.hooks.onBlocked(b); } }
+
+  // Телефоны (Safari на iPhone — всегда) не дают сайту самому включить клип YouTube или SoundCloud со звуком: нужно
+  // одно касание по самому плееру. Если трек должен играть, а плеер стоит дольше 2,5 с, — открываем плеер для касания.
+  watchStart() {
+    const it = this.item;
+    const want = this.pos();
+    const should = this.on && it && this.paused == null && want > 0.5 && !(it.dur && want > it.dur - 2);
+    if (!should) { this.idleSince = 0; this.setBlocked(false); return; }
+    let idle = false;
+    if (it.src === 'yt') {
+      if (!this.ytp || !this.ytOk) return;
+      let st = -1;
+      try { st = this.ytp.getPlayerState(); } catch (e) { return; }
+      const YT = window.YT;
+      idle = st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING;
+    } else if (it.src === 'sc') {
+      idle = !this.playing;
+    }
+    if (!idle) { this.idleSince = 0; return; }
+    if (!this.idleSince) this.idleSince = Date.now();
+    if (Date.now() - this.idleSince > 2500) this.setBlocked(true);
+  }
 
   stopAll() {
     if (this.ytp && this.ytOk) { try { this.ytp.stopVideo(); } catch (e) { /* нет плеера */ } }

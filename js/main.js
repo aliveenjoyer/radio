@@ -1,12 +1,13 @@
 // Encore FM: страница радио. Состояние эфира приходит потоком, плеер играет с той же секунды, что у всех.
-import { call, clock, stream, session } from './api.js?v=20261123072319';
-import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123072319';
-import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123072319';
-import { Player } from './player.js?v=20261123072319';
+import { call, clock, stream, session } from './api.js?v=20261123073609';
+import { $, esc, toast, modal, mmss, clockAt, ago, plural, holdButton, ICON } from './ui.js?v=20261123073609';
+import { user, onUser, setUser, refreshMe, login, logout, meta } from './auth.js?v=20261123073609';
+import { Player } from './player.js?v=20261123073609';
 
 let S = null;                 // последнее состояние эфира
 let lastNowId = null;
 let powered = false;
+let tapToast = false;
 const sid = (() => {
   try {
     let v = sessionStorage.getItem('radio.sid');
@@ -23,6 +24,12 @@ const player = new Player($('#media'), {
   onError: (it, code) => { call('/report', { kind: 'err', vid: it.vid, code, sid }).catch(() => {}); toast('У тебя этот трек не играет — сообщил радио'); },
   onDuration: (it, d) => call('/report', { kind: 'dur', vid: it.vid, dur: d }).catch(() => {}),
   onPlaying: (p) => { document.body.classList.toggle('playing', p); $('#screen').classList.toggle('live', p); },
+  onBlocked: (b) => {
+    $('#screen').classList.toggle('tap', b);
+    $('#tap-hint').classList.toggle('hide', !b);
+    renderMode();
+    if (b && !tapToast) { tapToast = true; toast('Нажми ▶ на экране клипа — телефон просит одно касание', 6000); }
+  },
   onFail: (text) => toast(text, 6000),
 });
 
@@ -95,7 +102,8 @@ function tune(item) {
 function renderMode() {
   if ($('#vfd').classList.contains('tuning')) return;
   let m = '● ЭФИР';
-  if (!S || !S.now) m = '○ ТИШИНА';
+  if (player.blocked) m = '▶ НАЖМИ НА КЛИП';
+  else if (!S || !S.now) m = '○ ТИШИНА';
   else if (S.paused != null) m = 'Ⅱ ПАУЗА';
   else if (S.now.pl) m = '● ФОН';
   else if (S.now.auto) m = '● АВТОЭФИР';

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://aliveenjoyer.art/social.css">
-<link rel="stylesheet" href="css/app.css?v=20261123072319">
+<link rel="stylesheet" href="css/app.css?v=20261123073609">
 </head>
 <body>
 <div class="amb" aria-hidden="true"><div class="amb-img" id="amb"></div></div>
@@ -43,6 +43,7 @@
       <span class="onair" id="onair" title="Лампа горит, когда ведущий в эфире"><i></i><b>В эфире</b><span id="onair-who"></span></span>
     </div>
     <div class="deck-body">
+      <div class="screen-col">
       <div class="screen" id="screen">
         <div class="screen-media" id="media"></div>
         <div class="screen-tune" id="screen-tune" aria-hidden="true">
@@ -57,6 +58,8 @@
           </button>
           <p class="screen-hint" id="screen-hint">Включи — и услышишь то же, что и все, с той же секунды</p>
         </div>
+      </div>
+      <p class="tap-hint hide" id="tap-hint"><b>Нажми ▶ на экране</b> — телефон просит одно касание по клипу. Звук пойдёт с той же секунды, что у всех</p>
       </div>
       <div class="face">
         <div class="vfd" id="vfd">
@@ -137,6 +140,6 @@
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=20261123072319"></script>
+<script type="module" src="js/main.js?v=20261123073609"></script>
 </body>
 </html>
